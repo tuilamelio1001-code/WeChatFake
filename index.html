@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ededed" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Chat">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Chat</title>
+<style>
+:root{--qt:#dcdcdc;--bg:#ededed;--bar:#f7f7f7;--line:#d6d6d6;--tx:#111;--sub:#a0a0a0;--in:#fff;--them:#fff;--me:#95ec69;--ic:#222;--ph:#9a9a9a}
+@media(prefers-color-scheme:dark){:root{--qt:#232323;--bg:#111;--bar:#1c1c1c;--line:#262626;--tx:#d9d9d9;--sub:#6b6b6b;--in:#2c2c2c;--them:#2c2c2c;--me:#26b35d;--ic:#d8d8d8;--ph:#6b6b6b}}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{display:flex;flex-direction:column;height:100dvh;background:var(--bg);color:var(--tx);font:16px/1.4 -apple-system,"Segoe UI",Roboto,sans-serif;padding-top:env(safe-area-inset-top)}
+button,input,select{font:inherit;color:inherit}
+svg{display:block}
+.ico{width:30px;height:30px;stroke:var(--ic);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+header{display:flex;align-items:center;justify-content:space-between;height:48px;padding:0 10px;font-size:17px;font-weight:500}
+header button{background:none;border:0;width:40px;height:40px;display:grid;place-items:center}
+header .ico{width:26px;height:26px}
+#msgs{flex:1;overflow-y:auto;padding:8px 14px}
+.empty{margin-top:38vh;text-align:center;color:var(--sub);font-size:14px}
+.time{text-align:center;color:var(--sub);font-size:14px;margin:14px 0 6px}
+.row{display:flex;gap:10px;margin:14px 0;align-items:flex-start}
+.row.me{flex-direction:row-reverse}
+.av{flex:none;width:41px;height:41px;border-radius:4px;background:#ededed center/cover}
+.bub{--bc:var(--them);position:relative;max-width:68%;padding:9px 14px;border-radius:4px;background:var(--bc);font-size:17px;white-space:pre-wrap;word-break:break-word}
+.me .bub{--bc:var(--me);color:#111}
+.bub::before{content:"";position:absolute;top:14px;border:6px solid transparent}
+.them .bub::before{right:100%;border-right-color:var(--bc)}
+.me .bub::before{left:100%;border-left-color:var(--bc)}
+.bub.img{padding:0;background:none}
+.bub.img::before{display:none}
+.bub.img img{display:block;max-width:200px;max-height:300px;border-radius:4px}
+.bub.tfb{--bc:#f79c46;width:230px;max-width:70%;padding:0;color:#fff;overflow:hidden}
+.bub.tfb.done{--bc:#f9d4a5}
+.tt{display:flex;gap:12px;align-items:center;padding:14px 14px 12px}
+.ic{flex:none;width:38px;height:38px;border-radius:50%;border:2px solid #fff;display:grid;place-items:center;font-size:20px}
+.amt{font-size:18px;font-weight:600}
+.nt{font-size:13px;opacity:.95}
+.tb{background:#fff;color:#999;font-size:12px;padding:4px 14px}
+footer{display:flex;gap:10px;align-items:center;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--bar);border-top:1px solid var(--line)}
+footer>button{flex:none;background:none;border:0;padding:0;width:30px;height:30px;position:relative}
+.ibox{flex:1;min-width:0;position:relative;height:40px;background:var(--in);border-radius:5px}
+.ibox input{width:100%;height:100%;border:0;background:none;outline:none;padding:0 70px 0 16px;font-size:17px}
+.ibox input::placeholder{color:var(--ph)}
+.ibox .ico{position:absolute;top:50%;transform:translateY(-50%);width:22px;height:22px;stroke:var(--ph);pointer-events:none}
+#ar{right:42px}#mic{right:10px}
+#badge{position:absolute;right:-5px;bottom:-5px}
+#badge .av{width:16px;height:16px;border-radius:50%;border:2px solid var(--bar)}
+#send{flex:none;height:36px;padding:0 14px;border:0;border-radius:5px;background:#07c160;color:#fff;font-size:15px;display:none}
+#sheet,#modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none}
+#sheet.on{display:flex;align-items:flex-end}
+#modal.on{display:flex;align-items:center;justify-content:center;padding:16px}
+#sheet>div{width:100%;background:var(--bg);padding-bottom:env(safe-area-inset-bottom)}
+#sheet button{display:block;width:100%;height:52px;border:0;border-bottom:1px solid var(--line);background:var(--bar);font-size:17px}
+#sheet .red{color:#fa5151}
+#sheet .gap{margin-top:8px}
+#modal>div{width:100%;max-width:380px;max-height:86dvh;overflow:auto;background:var(--bar);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.mt{font-weight:600;font-size:17px}
+.hint{color:var(--sub);font-size:13px}
+#modal input,#modal select{height:40px;border:1px solid var(--line);border-radius:5px;padding:0 10px;background:var(--in);width:100%}
+.mb{display:flex;gap:10px;justify-content:flex-end}
+.mb button{height:38px;padding:0 18px;border:0;border-radius:5px;background:var(--in)}
+.mb .ok{background:#07c160;color:#fff}
+.cl{display:flex;flex-direction:column;gap:10px}
+.cr{display:flex;gap:10px;align-items:center}
+.cr .av{cursor:pointer}
+.cr button,.add{border:0;background:var(--in);border-radius:5px;height:40px;padding:0 12px}
+#chat,#list{display:none;flex:1;min-height:0;flex-direction:column}
+body.c #chat,body.l #list{display:flex}
+#lst{flex:1;overflow-y:auto}
+.li{display:flex;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.li .av{width:48px;height:48px}
+.ln{flex:1;min-width:0}
+.nm{font-size:17px}
+.pv{color:var(--sub);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lt{color:var(--sub);font-size:12px;align-self:flex-start;margin-top:4px}
+#me2 .av{width:30px;height:30px}
+body.shot #chat,body.shot #list{pointer-events:none}
+body.shot{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+body.shot #badge,body.shot .empty,body.shot #me2{visibility:hidden}
+body.shot #send{display:none!important}
+body.shot #plus{display:block!important}
+#toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);max-width:86%;text-align:center;background:rgba(0,0,0,.78);color:#fff;padding:9px 14px;border-radius:6px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9}
+#toast.on{opacity:1}
+.col{display:flex;flex-direction:column;gap:5px;max-width:68%}
+.me .col{align-items:flex-end}
+.col .bub{max-width:100%}
+.qt{background:var(--qt);color:var(--tx);opacity:.75;font-size:14px;line-height:1.35;padding:6px 10px;border-radius:4px;white-space:pre-wrap;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#qbar{display:none;align-items:center;gap:8px;padding:6px 12px;background:var(--bar);border-top:1px solid var(--line);font-size:13px;color:var(--sub)}
+#qtx{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#qx{border:0;background:none;color:var(--sub);font-size:16px;width:28px;height:28px}
+body.shot #qbar{display:none!important}
+</style>
+</head>
+<body>
+<section id="list">
+  <header>
+    <button id="me2" aria-label="Hồ sơ của tôi"></button>
+    <span>Trò chuyện</span>
+    <button id="add" aria-label="Thêm nhân vật"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+  </header>
+  <div id="lst"></div>
+</section>
+<section id="chat">
+<header>
+  <button id="back" aria-label="Quay lại"><svg class="ico" viewBox="0 0 24 24"><path d="M15 4.5 7.5 12l7.5 7.5"/></svg></button>
+  <span id="title"></span>
+  <button id="more" aria-label="Tùy chọn"><svg class="ico" viewBox="0 0 24 24" style="fill:var(--ic);stroke:none"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button>
+</header>
+<main id="msgs"></main>
+<div id="qbar"><span id="qtx"></span><button id="qx" aria-label="Hủy trả lời">✕</button></div>
+<footer>
+  <button id="who" aria-label="Đổi người gửi"><svg class="ico" viewBox="0 0 30 30"><circle cx="15" cy="15" r="13"/><circle cx="10.5" cy="15" r="1.3" style="fill:var(--ic)"/><path d="M14 12.4a3.6 3.6 0 0 1 0 5.2M17.2 10a7 7 0 0 1 0 10"/></svg><span id="badge"></span></button>
+  <div class="ibox">
+    <input id="inp" placeholder="Nhập tin nhắn" autocomplete="off" enterkeyhint="send">
+    <svg class="ico" id="ar" viewBox="0 0 24 24"><path d="M4 12h15M14 7l5 5-5 5"/></svg>
+    <svg class="ico" id="mic" viewBox="0 0 24 24"><rect x="8.5" y="3" width="7" height="12" rx="3.5"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></svg>
+  </div>
+  <button id="emo" aria-label="Biểu tượng"><svg class="ico" viewBox="0 0 30 30"><circle cx="15" cy="15" r="13"/><circle cx="10.8" cy="12" r="1.2" style="fill:var(--ic)"/><circle cx="19.2" cy="12" r="1.2" style="fill:var(--ic)"/><path d="M9 16.5h12a6 6 0 0 1-12 0z"/></svg></button>
+  <button id="plus" aria-label="Thêm"><svg class="ico" viewBox="0 0 30 30"><circle cx="15" cy="15" r="13"/><path d="M15 8.5v13M8.5 15h13"/></svg></button>
+  <button id="send">Gửi</button>
+</footer>
+</section>
+<div id="toast"></div>
+<div id="sheet"><div></div></div>
+<div id="modal"><div></div></div>
+<input type="file" id="file" accept="image/*" hidden>
+<script>
+const $=s=>document.querySelector(s),K='chatpwa-v3';
+const div=(c,t)=>{const d=document.createElement('div');d.className=c;if(t!=null)d.textContent=t;return d};
+let S={me:{name:'Tôi'},cs:[{id:'c1',name:'Bạn thân',msgs:[]}],cur:null,who:'me'};
+try{
+  const o=JSON.parse(localStorage.getItem(K)||'null');
+  if(o)S=o;
+  else{const v=JSON.parse(localStorage.getItem('chatpwa-v2')||'null');
+    if(v&&v.chars){S.me={name:v.chars[0].name,av:v.chars[0].av};
+      S.cs=v.chars.slice(1).map((c,i)=>({id:c.id,name:c.name,av:c.av,msgs:v.msgs.filter(m=>m.c===c.id||(i===0&&m.c==='me')).map(m=>Object.assign({},m,{c:m.c==='me'?'me':'o'}))}))}}
+}catch(e){}
+S.cur=null;S.who='me';
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){alert('Bộ nhớ đầy. Hãy xóa bớt ảnh hoặc tin nhắn.')}};
+let rep=null;
+const cur=()=>S.cs.find(c=>c.id===S.cur);
+const refresh=()=>S.cur?render():list();
+const DEF="url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='18' r='8' fill='%23c4c4c4'/%3E%3Cpath d='M8 46c0-10 7-15 16-15s16 5 16 15z' fill='%23c4c4c4'/%3E%3C/svg%3E\")";
+function av(p){const d=div('av');d.style.backgroundImage=p.av?'url('+p.av+')':DEF;return d}
+const p2=n=>String(n).padStart(2,'0');
+function fmt(t){const n=new Date(),x=new Date(t),h=p2(x.getHours())+':'+p2(x.getMinutes());
+  const d=Math.round((new Date(n.getFullYear(),n.getMonth(),n.getDate())-new Date(x.getFullYear(),x.getMonth(),x.getDate()))/864e5);
+  return d===0?h:d===1?'Hôm qua '+h:p2(x.getDate())+'/'+p2(x.getMonth()+1)+' '+h}
+function money(x){const d=x.cur==='₫',n=d?x.v.toLocaleString('vi-VN',{maximumFractionDigits:0}):x.v.toFixed(2);return d?n+'₫':x.cur+n}
+const prev=m=>m.k==='img'?'[Hình ảnh]':m.k==='tf'?'[Chuyển khoản]':m.m;
+function list(){
+  S.cur=null;rep=null;document.body.className='l';
+  $('#me2').replaceChildren(av(S.me));
+  const L=$('#lst');L.replaceChildren();
+  if(!S.cs.length)L.append(div('empty','Chưa có nhân vật. Bấm + để thêm.'));
+  S.cs.forEach(c=>{
+    const last=c.msgs[c.msgs.length-1],r=div('li'),t=div('ln');
+    t.append(div('nm',c.name),div('pv',last?prev(last):'Chưa có tin nhắn'));
+    r.append(av(c),t,div('lt',last?fmt(last.t):''));
+    r.onclick=()=>open(c.id);L.append(r)});
+}
+function open(id){rep=null;S.cur=id;S.who='me';document.body.className='c';$('#inp').value='';tog();render()}
+function render(){
+  const c=cur();if(!c)return;
+  $('#title').textContent=c.name;
+  $('#qbar').style.display=rep?'flex':'none';
+  if(rep)$('#qtx').textContent='Trả lời '+rep.n+': '+rep.m;
+  $('#badge').replaceChildren(av(S.who==='me'?S.me:c));
+  const m=$('#msgs');m.replaceChildren();
+  if(!c.msgs.length)m.append(div('empty','Chưa có tin nhắn. Nhập nội dung bên dưới để bắt đầu.'));
+  let last=0;
+  c.msgs.forEach((x,i)=>{
+    if(x.t-last>3e5)m.append(div('time',fmt(x.t)));
+    last=x.t;
+    const r=div('row '+(x.c==='me'?'me':'them')),b=div('bub');
+    if(x.k==='img'){b.classList.add('img');const im=new Image();im.src=x.src;b.append(im)}
+    else if(x.k==='tf'){
+      b.classList.add('tfb');if(x.done)b.classList.add('done');
+      const box=div('');box.append(div('amt',money(x)),div('nt',x.done?'Đã nhận':(x.note||'Chuyển khoản cho bạn')));
+      const tt=div('tt');tt.append(div('ic','⇄'),box);b.append(tt,div('tb','Chuyển khoản'));
+    }else b.textContent=x.m;
+    b.onclick=()=>msgMenu(i);
+    if(x.q){const col=div('col');col.append(b,div('qt',x.q.n+': '+x.q.m));r.append(av(x.c==='me'?S.me:c),col)}
+    else r.append(av(x.c==='me'?S.me:c),b);
+    m.append(r);
+  });
+  m.scrollTop=m.scrollHeight;
+}
+function menu(items){
+  const s=$('#sheet'),box=s.firstElementChild;box.replaceChildren();
+  items.forEach(([t,f,red])=>{const b=document.createElement('button');b.textContent=t;if(red)b.className='red';
+    b.onclick=()=>{s.classList.remove('on');f();save();refresh()};box.append(b)});
+  const c=document.createElement('button');c.textContent='Hủy';c.className='gap';c.onclick=()=>s.classList.remove('on');
+  box.append(c);s.classList.add('on');
+}
+function modal(t,nodes,ok,onOk){
+  const m=$('#modal'),c=m.firstElementChild,row=div('mb'),x=document.createElement('button');
+  c.replaceChildren(div('mt',t),...nodes);
+  x.textContent='Hủy';x.onclick=()=>m.classList.remove('on');row.append(x);
+  const y=document.createElement('button');y.textContent=ok;y.className='ok';
+  y.onclick=()=>{if(onOk()!==false)m.classList.remove('on')};row.append(y);
+  c.append(row);m.classList.add('on');
+}
+const inp=(ph,mode)=>{const i=document.createElement('input');i.placeholder=ph;if(mode)i.inputMode=mode;return i};
+const sel=o=>{const s=document.createElement('select');o.forEach(v=>s.add(new Option(v,v)));return s};
+function msgMenu(i){
+  const c=cur(),x=c.msgs[i],it=[];
+  if(x.k==='tf')it.push(['Đổi trạng thái (chờ nhận / đã nhận)',()=>{x.done=!x.done}]);
+  it.push(['Trả lời tin nhắn này',()=>{rep={n:x.c==='me'?S.me.name:c.name,m:prev(x)};$('#inp').focus()}]);
+  it.push(['Xóa tin nhắn',()=>c.msgs.splice(i,1),1]);
+  menu(it);
+}
+function tfForm(){
+  const c=cur(),amt=inp('Số tiền (chỉ nhập số)','decimal'),cu=sel(['¥','₫','$']),note=inp('Lời nhắn (không bắt buộc)'),st=sel(['Chờ nhận','Đã nhận']);
+  modal('Chuyển khoản · '+(S.who==='me'?S.me.name:c.name),[amt,cu,note,st],'Gửi',()=>{
+    const v=parseFloat(amt.value.replace(/,/g,'.').replace(/[^\d.]/g,''));
+    if(!(v>=0)){amt.focus();return false}
+    c.msgs.push({k:'tf',c:S.who,v,cur:cu.value,note:note.value.trim(),done:st.value==='Đã nhận',t:Date.now()});
+    save();render();
+  });
+}
+function small(f,max,sq){return new Promise(res=>{
+  const u=URL.createObjectURL(f),im=new Image();
+  im.onload=()=>{let w=im.width,h=im.height,sx=0,sy=0,sw=w,sh=h;
+    if(sq){const s=Math.min(w,h);sx=(w-s)/2;sy=(h-s)/2;sw=sh=s;w=h=Math.min(max,s)}
+    else{const k=Math.min(1,max/Math.max(w,h));w=Math.round(w*k);h=Math.round(h*k)}
+    const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,sx,sy,sw,sh,0,0,w,h);
+    URL.revokeObjectURL(u);res(c.toDataURL(f.type==='image/png'?'image/png':'image/jpeg',.82))};
+  im.onerror=()=>res(null);im.src=u})}
+function pick(cb,multi){const f=$('#file');f.multiple=!!multi;f.onchange=()=>{[...f.files].forEach(cb);f.value=''};f.click()}
+const setAv=p=>pick(async f=>{const u=await small(f,128,1);if(u){p.av=u;save();refresh()}});
+function ask(label,cur,cb){const n=prompt(label,cur);if(n&&n.trim())cb(n.trim())}
+function shot(on){
+  rep=null;document.body.classList.toggle('shot',on);
+  if(document.activeElement)document.activeElement.blur();
+  $('#inp').value='';tog();$('#inp').placeholder=on?'Nhấn để chuyển đổi t…':'Nhập tin nhắn';
+  const t=$('#toast');t.textContent=on?'Đã bật chế độ chụp ảnh. Đợi 4 giây rồi chụp. Chạm 3 lần vào màn hình để thoát.':'Đã thoát chế độ chụp ảnh';
+  t.classList.add('on');clearTimeout(shot.t);shot.t=setTimeout(()=>t.classList.remove('on'),on?4000:1500);
+}
+let taps=[];
+document.addEventListener('pointerup',()=>{
+  if(!document.body.classList.contains('shot'))return;
+  const n=Date.now();taps=taps.filter(t=>n-t<800);taps.push(n);
+  if(taps.length>=3){taps=[];shot(false)}
+});
+function send(){
+  const v=$('#inp').value.trim(),c=cur();if(!v||!c)return;
+  c.msgs.push({k:'t',c:S.who,m:v,t:Date.now(),q:rep||undefined});rep=null;
+  $('#inp').value='';tog();save();render();$('#inp').focus();
+}
+function tog(){const on=!!$('#inp').value.trim();$('#send').style.display=on?'block':'none';$('#plus').style.display=on?'none':'';$('#ar').style.display=$('#mic').style.display=on?'none':''}
+$('#send').onclick=send;
+$('#inp').onkeydown=e=>{if(e.key==='Enter')send()};
+$('#inp').oninput=tog;
+$('#emo').onclick=()=>{$('#inp').value+='😊';tog();$('#inp').focus()};
+$('#who').onclick=()=>{S.who=S.who==='me'?'o':'me';render()};
+$('#back').onclick=()=>{list()};
+$('#qx').onclick=()=>{rep=null;render()};
+$('#plus').onclick=()=>menu([
+  ['Gửi ảnh',()=>pick(async f=>{const u=await small(f,800);
+    if(!u)return alert('Không đọc được ảnh này. Hãy dùng PNG hoặc JPEG.');
+    cur().msgs.push({k:'img',c:S.who,src:u,t:Date.now()});save();render()},1)],
+  ['Chuyển khoản',tfForm]]);
+$('#more').onclick=()=>{const c=cur();menu([
+  ['Chế độ chụp ảnh',()=>shot(true)],
+  ['Đổi ảnh đại diện của '+c.name,()=>setAv(c)],
+  ['Đổi tên '+c.name,()=>ask('Tên nhân vật:',c.name,n=>{c.name=n})],
+  ['Xóa toàn bộ tin nhắn',()=>{if(confirm('Xóa toàn bộ tin nhắn?'))c.msgs=[]},1],
+  ['Xóa nhân vật này',()=>{if(confirm('Xóa '+c.name+' cùng toàn bộ tin nhắn?')){S.cs=S.cs.filter(z=>z!==c);list()}},1]])};
+$('#add').onclick=()=>ask('Tên nhân vật mới:','',n=>{S.cs.push({id:'c'+Date.now(),name:n,msgs:[]});save();list()});
+$('#me2').onclick=()=>menu([
+  ['Chế độ chụp ảnh',()=>shot(true)],
+  ['Đổi ảnh đại diện của tôi',()=>setAv(S.me)],
+  ['Đổi tên của tôi',()=>ask('Tên của bạn:',S.me.name,n=>{S.me.name=n})]]);
+$('#modal').onclick=e=>{if(e.target.id==='modal')e.target.classList.remove('on')};
+list();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
