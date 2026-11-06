@@ -48,7 +48,7 @@ header .ico{width:26px;height:26px}
 footer{display:flex;gap:10px;align-items:center;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--bar);border-top:1px solid var(--line)}
 footer>button{flex:none;background:none;border:0;padding:0;width:30px;height:30px;position:relative}
 .ibox{flex:1;min-width:0;position:relative;height:40px;background:var(--in);border-radius:5px}
-.ibox input{width:100%;height:100%;border:0;background:none;outline:none;padding:0 70px 0 16px;font-size:17px}
+.ibox input{-webkit-appearance:none;appearance:none;-webkit-user-select:text;user-select:text;touch-action:manipulation;width:100%;height:100%;border:0;background:none;outline:none;padding:0 70px 0 16px;font-size:17px}
 .ibox input::placeholder{color:var(--ph)}
 .ibox .ico{position:absolute;top:50%;transform:translateY(-50%);width:22px;height:22px;stroke:var(--ph);pointer-events:none}
 #ar{right:42px}#mic{right:10px}
@@ -98,6 +98,7 @@ body.shot #plus{display:block!important}
 #qtx{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #qx{border:0;background:none;color:var(--sub);font-size:16px;width:28px;height:28px}
 body.shot #qbar{display:none!important}
+#modal textarea{width:100%;height:170px;border:1px solid var(--line);border-radius:5px;padding:8px;background:var(--in);font-size:13px;resize:none}
 </style>
 </head>
 <body>
@@ -120,7 +121,7 @@ body.shot #qbar{display:none!important}
 <footer>
   <button id="who" aria-label="Đổi người gửi"><svg class="ico" viewBox="0 0 30 30"><circle cx="15" cy="15" r="13"/><circle cx="10.5" cy="15" r="1.3" style="fill:var(--ic)"/><path d="M14 12.4a3.6 3.6 0 0 1 0 5.2M17.2 10a7 7 0 0 1 0 10"/></svg><span id="badge"></span></button>
   <div class="ibox">
-    <input id="inp" placeholder="Nhập tin nhắn" autocomplete="off" enterkeyhint="send">
+    <input id="inp" type="text" inputmode="text" placeholder="Nhập tin nhắn" autocomplete="off" autocapitalize="sentences" enterkeyhint="send">
     <svg class="ico" id="ar" viewBox="0 0 24 24"><path d="M4 12h15M14 7l5 5-5 5"/></svg>
     <svg class="ico" id="mic" viewBox="0 0 24 24"><rect x="8.5" y="3" width="7" height="12" rx="3.5"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></svg>
   </div>
@@ -252,6 +253,26 @@ document.addEventListener('pointerup',()=>{
   const n=Date.now();taps=taps.filter(t=>n-t<800);taps.push(n);
   if(taps.length>=3){taps=[];shot(false)}
 });
+function note(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(note.t);note.t=setTimeout(()=>e.classList.remove('on'),2000)}
+function exportJSON(){
+  const d=JSON.stringify({me:S.me,cs:S.cs});
+  const manual=()=>{const ta=document.createElement('textarea');ta.value=d;ta.readOnly=true;
+    modal('Dữ liệu JSON',[div('hint','Không tự sao chép được. Chạm vào ô, chọn tất cả rồi sao chép.'),ta],'Xong',()=>{});setTimeout(()=>{ta.focus();ta.select()},50)};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(d).then(()=>note('Đã sao chép dữ liệu JSON ('+Math.ceil(d.length/1024)+' KB)'),manual);
+  else manual();
+}
+function importJSON(){
+  const ta=document.createElement('textarea');ta.placeholder='Dán dữ liệu JSON vào đây';
+  modal('Nhập dữ liệu JSON',[div('hint','Dữ liệu hiện tại sẽ bị thay thế.'),ta],'Nhập',()=>{
+    let o;try{o=JSON.parse(ta.value);if(!o||!o.me||!Array.isArray(o.cs))throw 0}catch(e){alert('JSON không hợp lệ.');return false}
+    const img=v=>typeof v==='string'&&v.startsWith('data:image/');
+    if(!img(o.me.av))delete o.me.av;o.me.name=String(o.me.name||'Tôi');
+    o.cs.forEach((c,i)=>{c.id=String(c.id||'c'+Date.now()+i);c.name=String(c.name||'?');if(!img(c.av))delete c.av;
+      c.msgs=(Array.isArray(c.msgs)?c.msgs:[]).filter(m=>m&&(m.k!=='img'||img(m.src)))});
+    if(!confirm('Thay thế toàn bộ dữ liệu hiện tại?'))return false;
+    S.me=o.me;S.cs=o.cs;save();list();note('Đã nhập dữ liệu');
+  });
+}
 function send(){
   const v=$('#inp').value.trim(),c=cur();if(!v||!c)return;
   c.msgs.push({k:'t',c:S.who,m:v,t:Date.now(),q:rep||undefined});rep=null;
@@ -264,6 +285,11 @@ $('#inp').oninput=tog;
 $('#emo').onclick=()=>{$('#inp').value+='😊';tog();$('#inp').focus()};
 $('#who').onclick=()=>{S.who=S.who==='me'?'o':'me';render()};
 $('#back').onclick=()=>{list()};
+$('.ibox').addEventListener('click',()=>{if(document.activeElement!==$('#inp'))$('#inp').focus()});
+if(window.visualViewport){
+  const vv=window.visualViewport,fit=()=>{document.body.style.height=vv.height+'px';window.scrollTo(0,0);const m=$('#msgs');m.scrollTop=m.scrollHeight};
+  vv.addEventListener('resize',fit);vv.addEventListener('scroll',()=>window.scrollTo(0,0));
+}
 $('#qx').onclick=()=>{rep=null;render()};
 $('#plus').onclick=()=>menu([
   ['Gửi ảnh',()=>pick(async f=>{const u=await small(f,800);
@@ -280,6 +306,8 @@ $('#add').onclick=()=>ask('Tên nhân vật mới:','',n=>{S.cs.push({id:'c'+Dat
 $('#me2').onclick=()=>menu([
   ['Chế độ chụp ảnh',()=>shot(true)],
   ['Đổi ảnh đại diện của tôi',()=>setAv(S.me)],
+  ['Sao chép dữ liệu (JSON)',exportJSON],
+  ['Nhập dữ liệu từ JSON',importJSON],
   ['Đổi tên của tôi',()=>ask('Tên của bạn:',S.me.name,n=>{S.me.name=n})]]);
 $('#modal').onclick=e=>{if(e.target.id==='modal')e.target.classList.remove('on')};
 list();
